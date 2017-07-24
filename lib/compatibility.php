@@ -67,7 +67,7 @@ function wassup_load_compat_modules(){
 			//load 'Wassup_Widget' base widget without the 'WP_Widget' parent class
 			if(version_compare($wp_version,'2.8','<')){
 				if(!class_exists('Wassup_Widget')){
-					include_once($wassup_compatlib.'/compat_widget.php');
+					include_once($wassup_compatlib.'/compat_widgets.php');
 				}
 			}
 		//Wordpress 3.1-4.5 & PHP 4.1-5.2 compatibility
@@ -80,6 +80,9 @@ function wassup_load_compat_modules(){
 		if(version_compare($php_vers,'5.2','<')){
 			if(!class_exists('wassupOptions')){
 				include_once($wassup_compatlib.'/compat_wassup.class.php');
+			}
+			if(!class_exists('Wassup_Widget')){
+				include_once($wassup_compatlib.'/compat_widgets.php');
 			}
 		}
 	}

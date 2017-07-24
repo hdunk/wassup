@@ -72,7 +72,7 @@ class UADetector {
  * @param 	string $ua (optional)
  * @return	object(16)
  */
-function uadetector($ua=""){
+function __construct($ua=""){
 	$this->is_browser=false;
 	$this->is_mobile=false;
 	$this->is_robot=false;
@@ -116,6 +116,8 @@ function uadetector($ua=""){
 	unset($this->_done_browsers,$this->_done_spiders,$this->is_active_agent);
 	return;
 } //end function __construct
+/** PHP4 constructor for backward compatibility */
+function uadetector($ua=""){$this->__construct($ua);}
 	
 /**
  * Check user agent against a known list of top user agents
