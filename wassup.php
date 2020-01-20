@@ -2,8 +2,8 @@
 /*
 Plugin Name: WassUp Real Time Analytics
 Plugin URI: http://www.wpwp.org
-Description: Analyze your website traffic with accurate, real-time stats, live views, visitor counts, top stats, IP geolocation, customizable tracking, and more. For Wordpress 2.2+
-Version: 1.9.4.5
+Description: Analyze your website traffic with accurate, real-time stats, live views, visitor counts, top stats, IP geolocation, customizable tracking, and more.
+Version: 1.9.5
 Author: Michele Marcucci, Helene Duncker
 Author URI: http://www.michelem.org/
 Text Domain: wassup
@@ -52,7 +52,7 @@ function wassup_init($init_settings=false){
 
 	//define wassup globals & constants
 	if(!defined('WASSUPVERSION')){
-		define('WASSUPVERSION','1.9.4.5');
+		define('WASSUPVERSION','1.9.5');
 		define('WASSUPDIR',dirname(preg_replace('/\\\\/','/',__FILE__))); 
 	}
 	//turn on debugging in Wassup (global)...Use cautiously! May display errors from other plugins, not just WassUp
@@ -315,13 +315,14 @@ function wassup_install($network_wide=false) {
  * NOTES:
  *  - no Wassup classes, globals, constants or functions are used during uninstall per Wordpress 'uninstall' hook requirement
  *  - no compatibility functions are loaded, so use 'function_exists' check for functions after Wordpress 2.2
+ *   - checks for multiple copies of Wassup and deletes tables and settings only if installed version is same as this version
  * @param boolean (for multisite uninstall)
  * @return void
  */
 function wassup_uninstall($network_wide=false){
 	global $wpdb,$wp_version,$current_user;
-	$wassup_network_settings=array();
-	if(empty($current_user->ID)) wp_get_current_user();
+
+	$WASSUP_UNINSTALL_VERS="1.9.5"; //IMPORTANT - update with each new release!
 	//for multisite uninstall,
 	if(function_exists('is_multisite') && is_multisite()){
 		if($network_wide || is_network_admin()){
@@ -336,9 +337,23 @@ function wassup_uninstall($network_wide=false){
 		$network_wide=false;
 		$subsite_ids = array("0");
 	}
-	//wassup should not be active during network uninstall
+	//get main site settings to check version
+	if($network_wide){
+		$wassup_settings=get_blog_option($GLOBALS['current_site']->blog_id,'wassup_settings');
+	}else{
+		$wassup_settings=get_option('wassup_settings');
+	}
+	//stop here to prevent data deletion when installed version is different from deleted version @since v1.9.5
+	if(!empty($wassup_settings['wassup_version']) && $WASSUP_UNINSTALL_VERS != $wassup_settings['wassup_version']){
+		return;
+	}
+
+	//Delete Wassup data and settings:
+	if(empty($current_user->ID)) wp_get_current_user();
+	$wassup_network_settings=array();
 	if($network_wide){
 		$wassup_network_settings=get_site_option('wassup_network_settings');
+		//wassup should not be active for network uninstall
 		if(!empty($wassup_network_settings['wassup_active'])){
 			$wassup_network_settings['wassup_active']="0";
 			update_site_option('wassup_network_settings',$wassup_network_settings);
@@ -381,7 +396,7 @@ function wassup_uninstall($network_wide=false){
 			$deleted=$wpdb->query(sprintf("DELETE FROM {$wpdb->prefix}options WHERE `option_name` LIKE 'widget_%s'",$wwidget.'%'));
 		}
 		//if plugin is still running, deactivate it
-		if(function_exists('is_plugin_active') && function_exists('deactivate_plugins')){
+		if(function_exists('is_plugin_active')){
 			$wfile=preg_replace('/\\\\/','/',__FILE__);
 			$wassupplugin=plugin_basename($wfile);
 			if(is_plugin_active($wassupplugin)){
