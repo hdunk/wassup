@@ -232,10 +232,10 @@ function wassup_install($network_wide=false) {
 			$wassup_options->wassup_active="0";
 			$wassup_options->saveSettings();
 		}
-		//cancel all scheduled Wassup wp-cron jobs in case Wassup wp-cron jobs not previously canceled
-		if(!empty($wassup_options->wassup_upgraded) || (!empty($wassup_options->wassup_version) && version_compare($wassup_options->wassup_version,"1.9",">="))){
-			wassup_cron_terminate();
-		}
+	}
+	//cancel all outstanding scheduled wp-cron jobs from previous version of Wassup...these are cancelled during deactivation, but sometimes they still persist
+	if(!empty($wassup_options->wassup_upgraded) || (!empty($wassup_options->wassup_version) && version_compare($wassup_options->wassup_version,"1.9",">=")) || wassupDb::table_exists($wassup_meta_table)){
+		wassup_cron_terminate();
 	}
 	//Do the table upgrade
 	$admin_message="";
@@ -449,7 +449,6 @@ function wassup_uninstall($network_wide=false){
 
 /** Stop Wassup wp-cron and wp-ajax on deactivation. @since v1.9 */
 function wassup_deactivate(){
-	global $wp_version;
 	//wp-ajax action may persist, so remove it
 	remove_action('wp_ajax_wassup_action_handler','wassup_action_handler');
 	//wassup_cron_terminate();
@@ -458,14 +457,13 @@ function wassup_deactivate(){
 	remove_action('wassup_scheduled_purge','wassup_auto_cleanup');
 	remove_action('wassup_scheduled_dbtasks',array('wassupDb','scheduled_dbtask'));
 	//scheduled tasks in wp-cron persist, so remove them
-	if(version_compare($wp_version,'3.0','>')){
-		wp_clear_scheduled_hook('wassup_scheduled_cleanup');
-		wp_clear_scheduled_hook('wassup_scheduled_purge');
-		wp_clear_scheduled_hook('wassup_scheduled_dbtasks');
-		if(!is_multisite() || is_main_site() || empty($wassup_network_settings['wassup_table'])){
-			remove_action('wassup_scheduled_optimize',array('wassupDb','scheduled_dbtask'));
-			wp_clear_scheduled_hook('wassup_scheduled_optimize');
-		}
+	wp_clear_scheduled_hook('wassup_scheduled_cleanup');
+	wp_clear_scheduled_hook('wassup_scheduled_purge');
+	wp_clear_scheduled_hook('wassup_scheduled_dbtasks');
+	if (is_multisite()) $wassup_network_settings=get_site_option('wassup_network_settings');
+	if(empty($wassup_network_settings['wassup_table']) || is_main_site()){
+		remove_action('wassup_scheduled_optimize',array('wassupDb','scheduled_dbtask'));
+		wp_clear_scheduled_hook('wassup_scheduled_optimize');
 	}
 }
 /**
@@ -3886,21 +3884,22 @@ function wassup_foot() {
  * @since v1.9.1
  */
 function wassup_cron_startup(){
-	global $wp_version,$wassup_options;
-	if(version_compare($wp_version,'3.0','>=')){
-		if(!has_action('wassup_scheduled_cleanup')){
-			add_action('wassup_scheduled_cleanup','wassup_temp_cleanup');
+	global $wassup_options;
+	if (empty($wassup_options->wassup_active) || !empty($wassup_options->disable_cron)) {
+		return; //nothing to do
+	}
+	if(!has_action('wassup_scheduled_cleanup')){
+		add_action('wassup_scheduled_cleanup','wassup_temp_cleanup');
+	}
+	wp_schedule_event(time()+1800,'hourly','wassup_scheduled_cleanup');
+	//do regular purge of old records
+	if(!empty($wassup_options->delete_auto) && $wassup_options->delete_auto!="never"){
+		if(!has_action('wassup_scheduled_purge')){
+			add_action('wassup_scheduled_purge','wassup_auto_cleanup');
 		}
-		wp_schedule_event(time()+1800,'hourly','wassup_scheduled_cleanup');
-		//do regular purge of old records
-		if(!empty($wassup_options->delete_auto) && $wassup_options->delete_auto!="never"){
-			if(!has_action('wassup_scheduled_purge')){
-				add_action('wassup_scheduled_purge','wassup_auto_cleanup');
-			}
-			//do purge at 2am
-			$starttime=strtotime("tomorrow 2:00am");
-			wp_schedule_event($starttime,'daily','wassup_scheduled_purge');
-		}
+		//do purge at 2am
+		$starttime=strtotime("tomorrow 2:00am");
+		wp_schedule_event($starttime,'daily','wassup_scheduled_purge');
 	}
 }
 /**
@@ -3909,20 +3908,17 @@ function wassup_cron_startup(){
  * @since v1.9.1
  */
 function wassup_cron_terminate(){
-	global $wp_version;
 	//delete scheduled tasks from wp-cron
 	remove_action('wassup_scheduled_cleanup','wassup_temp_cleanup');
 	remove_action('wassup_scheduled_purge','wassup_auto_cleanup');
 	remove_action('wassup_scheduled_dbtasks',array('wassupDb','scheduled_dbtask'));
-	if(version_compare($wp_version,'3.0','>=')){
-		$wassup_network_settings=get_site_option('wassup_network_settings');
-		wp_clear_scheduled_hook('wassup_scheduled_cleanup');
-		wp_clear_scheduled_hook('wassup_scheduled_purge');
-		wp_clear_scheduled_hook('wassup_scheduled_dbtasks');
-		if(!is_multisite() || is_main_site() || empty($wassup_network_settings['wassup_table'])){
-			remove_action('wassup_scheduled_optimize',array('wassupDb','scheduled_dbtask'));
-			wp_clear_scheduled_hook('wassup_scheduled_optimize');
-		}
+	wp_clear_scheduled_hook('wassup_scheduled_cleanup');
+	wp_clear_scheduled_hook('wassup_scheduled_purge');
+	wp_clear_scheduled_hook('wassup_scheduled_dbtasks');
+	if (is_multisite()) $wassup_network_settings=get_site_option('wassup_network_settings');
+	if(empty($wassup_network_settings['wassup_table']) || is_main_site()){
+		remove_action('wassup_scheduled_optimize',array('wassupDb','scheduled_dbtask'));
+		wp_clear_scheduled_hook('wassup_scheduled_optimize');
 	}
 }
 /** For cleanup of temp records via wp-cron. @since v1.9 */
@@ -3952,9 +3948,9 @@ function wassup_auto_cleanup(){
 		if(!empty($wassup_options->delete_auto) && $wassup_options->delete_auto!="never"){
 			//check last auto delete timestamp to ensure purge occurs only once a day
 			$wassup_table=$wassup_options->wassup_table;
-			$now=time();
+			$timenow=time();
 			$delete_auto_time=wassupDb::get_wassupmeta($wassup_table,'_delete_auto');
-			if(empty($auto_delete_time) || $auto_delete_time < $now - 24*3600){
+			if(empty($auto_delete_time) || $auto_delete_time < $timenow - 24*3600){
 				wassupDb::auto_cleanup();
 			}
 		}

@@ -554,17 +554,7 @@ function wassup_updateTable($wtable=""){
 			$dbtask_keys['ip']=sprintf("ALTER TABLE `%s` ADD INDEX `ip` (`ip`)",$wassup_table);
 		}
 	//}
-	// Upgrade from v1.9:
-	// -remove all Wassup 1.9 scheduled actions from wp-cron
-	if(!empty($from_version) && $from_version=="1.9"){
-		remove_action('wassup_scheduled_optimize',array('wassupDb','scheduled_dbtask'));
-		remove_action('wassup_scheduled_dbtasks',array('wassupDb','scheduled_dbtask'));
-		remove_action('wassup_scheduled_cleanup','wassup_temp_cleanup');
-		remove_action('wassup_scheduled_purge','wassup_auto_cleanup');
-		wp_clear_scheduled_hook('wassup_scheduled_optimize');
-		wp_clear_scheduled_hook('wassup_scheduled_purge');
-		wp_clear_scheduled_hook('wassup_scheduled_cleanup');
-	}
+	// Delete of scheduled actions no longer done here @since v1.9.5
 	//log errors
 	if($wdebug_mode && !empty($result) && is_wp_error($result)){
 		$errno=$result->get_error_code();
@@ -692,16 +682,18 @@ function wassup_updateTable($wtable=""){
 		$dbtasks[]=sprintf("UPDATE $low_priority `$wassup_table` SET `os`='Win10' WHERE `timestamp`>='%d' AND (`os`='WinNT 10' OR `os`='WinNT 10.0')",strtotime("1 January 2015"));
 		$dbtasks[]=sprintf("UPDATE $low_priority `$wassup_table` SET `os`='Win10 x64' WHERE `timestamp`>='%d' AND (`os`='WinNT 10 x64' OR `os`='WinNT 10.0 x64')",strtotime("1 January 2015"));
 		$dbtasks[]=sprintf("UPDATE $low_priority `$wassup_table` SET `browser`='IE 11' WHERE `timestamp`>='%d' AND `browser`='' AND (`os` LIKE 'Win10%%' OR `os` LIKE 'WinNT 10%%') AND `agent` LIKE '%% Edge%%'",strtotime("1 January 2015"));
-	} //end if 1.9
+	} //end if v1.9
 
 	//For all upgrades: 
 	// removed scheduled lookup of new api key @since v1.9.4.5`
-	//Queue the retroactive updates
-	//schedule retroactive updates via cron so it dosen't slow down activation
+	
+	//Queue the data updates
+	//schedule data updates via cron so it doesn't slow down activation
+	$timenow=time();
 	if(count($dbtasks)>0){
 		$arg=array('dbtasks'=>$dbtasks);
 		if(!empty($low_priority)){
-			wp_schedule_single_event(time()+300,'wassup_upgrade_dbtasks',$arg);
+			wp_schedule_single_event($timenow+360,'wassup_upgrade_dbtasks',$arg);
 		}else{
 			wassupDb::scheduled_dbtask($arg);
 		}

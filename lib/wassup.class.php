@@ -1808,32 +1808,54 @@ class wassupDb{
 				$results=false;
 				$error_msg="";
 				//limit allowed sql to certain tasks and to Wassup tables only
-				if(strpos($db_sql,"DELETE FROM `$table_prefix")!==false){
-					$results=$wpdb->query($db_sql);
-				}elseif(strpos($db_sql,"UPDATE LOW_PRIORITY `$table_prefix")!==false){
-					$results=$wpdb->query($db_sql);
-				}elseif(strpos($db_sql,"UPDATE  `$table_prefix")!==false){
-					$results=$wpdb->query($db_sql);
-				}elseif(strpos($db_sql,"UPDATE `$table_prefix")!==false){
-					$results=$wpdb->query($db_sql);
+				if(strpos($db_sql,"UPDATE ")!==false){
+					//make sure "update" has a "set" and "where" condition attached @since v1.9.5
+					$update_sql=$db_sql;
+					if (strpos($update_sql," SET ")>0 && strpos($update_sql, " WHERE ")>0){
+						$update_sql=str_replace('  ',' ',$db_sql);
+						if(strpos($update_sql,"UPDATE LOW_PRIORITY `$table_prefix")!==false){
+							$results=$wpdb->query($db_sql);
+						}elseif(strpos($update_sql,"UPDATE `$table_prefix")!==false){
+							$results=$wpdb->query($db_sql);
+						}else{
+							$error_msg=" ".$error_l10.": Invalid UPDATE request. Missing or unknown table".esc_attr($db_sql);
+						}
+					}else{
+						$error_msg=" ".$error_l10.": Invalid UPDATE request. SET or WHERE condition is missing or corrupt ".esc_attr($db_sql);
+					}
+				}elseif(strpos($db_sql,"DELETE FROM `$table_prefix")!==false){
+					//make sure no blank delete request is processed @since v1.9.5
+					if (strpos($db_sql,'` WHERE ')>0){
+						$results=$wpdb->query($db_sql);
+					}else{
+						$error_msg=" ".$error_l10.": Invalid DELETE request. WHERE condition is missing or corrupt ".esc_attr($db_sql);
+					}
 				}elseif(strpos($db_sql,"OPTIMIZE TABLE `$table_prefix")!==false){
 					//limit wassup optimize to 1 per day in multisite
-					$wassup_table='`'.$wassup_settings['wassup_table'].'`';
-					$wassup_meta_table='`'.$wassup_settings['wassup_table'].'_meta`';
-					if(strpos($db_sql,$wassup_table)>0){
+					$wassup_table=$wassup_settings['wassup_table'];
+					if(strpos($db_sql,'`'.$wassup_table.'`')>0){
 						$timestamp=time();
 						$last_optimized=self::get_wassupmeta($wassup_table,'_optimize');
-						if(empty($last_optimized) || ($timestamp - $last_optimized)>24*3600){
+						$yesterday=$timestamp - (24*3600);
+						if(empty($last_optimized) || $last_optimized <= $yesterday){
 							//save timestamp to prevent repeat of optimize
-							$expire=time()+7*24*3600;
+							$expire=time()+7*24*3600; //weekly optimize schedule
 							$wassup_optimized=self::update_wassupmeta($wassup_table,'_optimize',$timestamp,$expire);
 							//do optimize
 							$results=$wpdb->query($db_sql);
-						}else{
+						}elseif($last_optimized > $yesterday){
 							$error_msg=" ".$error_l10.": limit of 1 optimize task in 24-hours ".esc_attr($db_sql);
+							$results=false;
 						}
-					}elseif(strpos($db_sql,$wassup_meta_table)>0){
-						$results=$wpdb->query($db_sql);
+					}elseif(preg_match('/OPTIMIZE TABLE `([0-9a-z\-_]+)`$/',$db_sql,$pcs)>0){
+						$optimize_table=$pcs[1];
+						if(self::table_exists($optimize_table)){
+							$expire=time()+7*24*3600; //weekly optimize schedule
+							$wassup_optimized=self::update_wassupmeta($optimize_table,'_optimize',$timestamp,$expire);
+							$results=$wpdb->query($db_sql);
+						}else{
+							$error_msg=" ".$error_l10.": invalid table in optimize request ".esc_attr($db_sql);
+						}
 					}else{
 						$error_msg=" ".$error_l10.": unknown optimize request ".esc_attr($db_sql);
 					}
@@ -1863,21 +1885,16 @@ class wassupDb{
 			} //end if dbtasks
 		} //end if wassup_active
 		//email error output from cron as these are not logged
-		if(!empty($wdebug_mode)){
-			$message="";
-			if(!empty($dbtask_errors)){
-				$subject=sprintf(__("%s error!","wassup"),'Wassup wp-cron');
-				$message=sprintf(__("%s encountered an error.","wassup"),"scheduled_dbtask")."\n";
-				foreach($dbtask_errors AS $error_msg){
-					$message .=$error_msg."\n";
-				}
+		if(!empty($wdebug_mode) && !empty($dbtask_errors)){
+			$subject=sprintf(__("%s error!","wassup"),'Wassup wp-cron');
+			$message=sprintf(__("%s encountered an error.","wassup"),"scheduled_dbtask")."\n";
+			foreach($dbtask_errors AS $error_msg){
+				$message .=$error_msg."\n";
 			}
-			if(!empty($message)){
-				$blogurl = wassupURI::get_sitehome();
-				$recipient=get_bloginfo('admin_email');
-				$sender='From: '.get_bloginfo('name').' <wassup_noreply@'.parse_url($blogurl,PHP_URL_HOST).'>';
-				wp_mail($recipient,$subject,$message,$sender);
-			}
+			$blogurl = wassupURI::get_sitehome();
+			$recipient=get_bloginfo('admin_email');
+			$sender='From: '.get_bloginfo('name').' <wassup_noreply@'.parse_url($blogurl,PHP_URL_HOST).'>';
+			wp_mail($recipient,$subject,$message,$sender);
 		}
 		//return $affected_recs; //don't return anything
 	} //end scheduled_dbtask
