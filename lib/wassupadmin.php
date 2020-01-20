@@ -809,6 +809,8 @@ function WassUp() {
 					$wassup_options->wassup_optimize=$last_week;
 					$wassup_options->saveSettings();
 				}
+				//clear optimize history
+				wassupDb::delete_wassupmeta($wassup_table,"_optimize");
 				//reset optimize in main site when plugin is network-activated @since v1.9.1
 				if(!empty($network_settings['wassup_table']) && !empty($site_settings['wassup_optimize'])){
 					if($site_settings['wassup_optimize'] >$last_week){

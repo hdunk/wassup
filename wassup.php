@@ -551,7 +551,8 @@ function wassup_preload(){
 	if(!empty($wassup_options) && $wassup_options->is_recording_active()){
 		//add actions for wp-cron scheduled tasks - @since v1.9
 		if(!has_action('wassup_scheduled_dbtasks')) add_action('wassup_scheduled_dbtasks',array('wassupDb','scheduled_dbtask'),10,1);
-		if(!is_multisite() || is_main_site() || !$wassup_options->network_activated_plugin()){
+		//skip optimize scheduled action when wassup_optimize setting is 0 @since v1.9.5
+		if(!empty($wassup_options->wassup_optimize) && (!is_multisite() || is_main_site() || !$wassup_options->network_activated_plugin())){
 			if (!has_action('wassup_scheduled_optimize')) add_action('wassup_scheduled_optimize',array('wassupDb','scheduled_dbtask'),10,1);
 		}
 		//add custom actions for cleanup of inactive wassup_tmp records and expired cache records, if needed
@@ -2195,9 +2196,10 @@ function wassupAppend($req_code=0) {
 		}
 	}
 	//# schedule table optimization ...check every few visits
-	if(((int)$timestamp)%141 == 0 && (!is_multisite() || is_main_site() || !$wassup_options->network_activated_plugin())){
+	//reduced frequency of optimize checks to avoid duplicate "optimize" error @since v1.9.5
+	if(((int)$timestamp)%191 == 0 && !empty($wassup_options->wassup_optimize)){ 
 		//Optimize table when optimize timestamp is older than current time
-		if(!empty($wassup_options->wassup_optimize) && is_numeric($wassup_options->wassup_optimize) && $now >(int)$wassup_options->wassup_optimize){
+		if(is_numeric($wassup_options->wassup_optimize) && $now-60 >(int)$wassup_options->wassup_optimize && (!is_multisite() || is_main_site() || !$wassup_options->network_activated_plugin())){
 			$optimize_sql=sprintf("OPTIMIZE TABLE `%s`",$wassup_table);
 			if(version_compare($wp_version,'3.0','<')){
 				$wassup_dbtask[]=$optimize_sql;
