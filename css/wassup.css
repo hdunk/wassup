@@ -46,7 +46,7 @@
 #wassup-message.notice-warning{color:#447;}
 #wassup-message.updated{color:#040;}
 #wassup-message >button,#wassup-message >button:hover {background-color:transparent;border:0 none;-moz-box-shadow:none;-webkit-box-shadow:none;box-shadow:none;}
-/* ------------------------------------------------------------------
+/* ----------------------------------------------------------
  * Wassup topmenu */
 #wassup-screen-links{position:relative;top:0;margin:0 25px 0 0;padding:0;}
 #wassup-menu{display:block;height:40px;margin:0;padding:0;overflow:hidden;}
@@ -67,10 +67,12 @@
 @media (max-width: 639px) {
   #wassup-wrap{margin-right:5px;padding:1px 2px;}
   #wassup-screen-links{margin-right:5px;}
-  #wassup-menu >#donate-link,#wassup-menu >#menu-link-5,#wassup-menu >#menu-link-4{display:none;}
   #wassup-screen-links >#wassup-menu >.current{display:block;}
 }
-/* ------------------------------------------------------------------
+@media (max-width: 767px) {
+  #wassup-menu #donate-link{display:none;}
+}
+/* ----------------------------------------------------------
  * Visitor/Detail View */
 #wassup-wrap .pagination{margin:5px 0 10px !important;padding:3px !important;text-align:center;width:100%;font-size:12px;}
 #wassup-wrap .pagination a{margin:2px;padding:2px 5px 2px 5px;color:#777 !important;background-color:#fcfcfc;border:1px solid #c0cccf !important;}
@@ -198,14 +200,14 @@ div.main-tabs{margin:10px auto 3px;padding:3px;color:#445;background-color:#e1df
   #wassup-wrap .sum-box{width:180px;overflow:hidden;}
   #wassup-wrap .sum-box >.sum-box-ip{width:170px;white-space:nowrap;text-overflow:ellipsis;}
 }
-/* ------------------------------------------------------------------
+/* ----------------------------------------------------------
  * Chart and Map */
 #wassup-wrap .placeholder{width:100%;margin:0 -3px;padding:0 3px;text-align:center;overflow-x:auto;overflow-y:hidden;}
 #wassup-wrap .placeholder img{margin:5px auto;padding:1px;box-shadow:none;}
 #wassup-wrap #chart_placeholder img,#wassup-wrap #spia_map{padding-bottom:2px;background-color:#e9e9ea;border:1px solid #bbb;border-bottom-color:#777;border-top-color:#ccc;-webkit-box-shadow:0 1px 3px 0 rgba(110,110,100,0.7);box-shadow:0 1px 3px 0 rgba(110,110,100,0.7);}
 #wassup-wrap #spia_map{margin:0 auto;}
 #wassup-wrap #spia_map img,#wassup-wrap #spia_map *{padding:0;border:0 none !important;box-shadow:none !important;}
-/* ------------------------------------------------------------------
+/* ----------------------------------------------------------
  * Rawdata View */
 .wassup-raw {padding:7px 0 0 3px;}
 .wassup-raw h2{font:25px/1.3em Georgia,"Times New Roman",Times,serif;margin:0.2em 0;}
@@ -215,7 +217,7 @@ div.main-tabs{margin:10px auto 3px;padding:3px;color:#445;background-color:#e1df
 .wassup-raw .indent-raw{margin:0;padding:5px 5px 0 10px;}
 .wassup-raw .field{display:inline-block;width:100px;text-indent:-10px;}
 .wassup-raw .raw{color:#542;}
-/* ------------------------------------------------------------------
+/* ----------------------------------------------------------
  * Spy View */
 #spyContainer{clear:both;padding:2px 2px 0 0;font-size:13px;}
 #spyContainer .sum-rec{min-height:25px;margin:8px 0 0;padding:2px 0 0;clear:left;border-color:#b9b9bc;border-bottom:3px solid #778;}
@@ -230,12 +232,12 @@ div.main-tabs{margin:10px auto 3px;padding:3px;color:#445;background-color:#e1df
 #wassup-wrap.wassup-spy .legend a{border-bottom:1px solid;}
 #wassup-wrap.wassup-spy .legend a.icon{border:0 none;}
 #wassup-wrap.wassup-spy .legend #spy-pause a,#wassup-wrap.wassup-spy .legend #spy-play a{text-decoration:none;border-bottom:0 none;}
-/* ------------------------------------------------------------------
+/* ----------------------------------------------------------
  * Visitors Online View */
 #onlineContainer.main-tabs{margin-top:5px;border:0 none;background-color:transparent;box-shadow:none;}
 #wassup-wrap #onlineContainer .sum-rec{min-height:40px;margin:1px 0 0;padding:0;clear:left;border-color:#b9b9bc;border-bottom:5px solid #2e3e5e;}
 #onlineContainer .legend a.toggle-all{line-height:2em;border-bottom:1px solid;}
-/* ------------------------------------------------------------------
+/* ----------------------------------------------------------
  * Options View & jQueryUI */
 #wassup-wrap #tabcontainer{padding:0 !important;font-size:14px;color:#445;list-style:none;border:1px solid #999;border-radius:3px;background-color:#d6d7d6;background-image:none !important;-webkit-box-shadow:0 2px 3px 0 rgba(69,69,60,0.7);box-shadow:0 2px 3px 0 rgba(69,69,60,0.7);}
 .wassup-wp-legacy #tabcontainer{font-size:13px;}
@@ -283,19 +285,31 @@ div.main-tabs{margin:10px auto 3px;padding:3px;color:#445;background-color:#e1df
 #wassup-wrap #tabcontainer li.ui-tabs-active a:focus,#wassup-wrap #tabcontainer li.ui-tabs-active a:active {outline:none;}
 #wassup-wrap #tabcontainer .ui-state-active a,#wassup-wrap li.ui-tabs-active a{color:#212121 !important;}
 #wassup-wrap #tabcontainer .ui-tabs-nav a:hover {color:#212121;}
+#tabcontainer #opt-tab-donate{float:right !important;background-color:beige !important;}
+#tabcontainer #opt-tab-donate >a{color:#966 !important;}
 .wassup .ui-dialog-titlebar .ui-button >.ui-button-text{display:none;}
 #wassup-dialog{display:none;}
 #wassup-dialog.ui-dialog{display:block;}
 @media (max-width: 639px) {
   #wassup-wrap p.description,#wassup-wrap p.opt-note{display:none;}
   #wassup-wrap #info-sysinfo{display:none;}
+  #tabcontainer #opt-tab-donate{display:none;}
+  #tabcontainer #opt-tab-donate.ui-state-active{display:block;}
+}
+@media (max-width: 767px) {
+  #tabcontainer #opt-tab-faq{display:none;}
 }
 /* FAQ */
-#wassup-wrap.wassup-faq{font-size:15px;line-height:1.3em;}
+#wassup-wrap.wassup-faq{color:#000;font-size:15px;line-height:1.3em;}
+#wassup-wrap.wassup-faq strong,#wassup-wrap.wassup-faq h2{color:#444;}
 #wassup-wrap.wassup-faq li{padding-bottom:10px;}
+#wassup-wrap.wassup-faq li ol{padding-bottom:0;margin-bottom:0;}
+#wassup-wrap.wassup-faq li li{padding-top:2px;padding-bottom:0;margin-bottom:0;}
 #wassup-wrap .faq-question,#wassup-wrap .faq-answer{display:inline-block;width:90%;margin-left:8px;text-indent:-3px;vertical-align:top;}
-#wassup-wrap .faq-question{font-style:italic;font-weight:600;}
-/* ------------------------------------------------------------------
+#wassup-wrap .faq-question{color:#444;font-style:italic;font-weight:600;}
+#wassup-wrap.wassup-faq a{color:#247;}
+#wassup-wrap .linespace{display:block;display:inline-block;clear:right;padding-top:5px;}
+/* ----------------------------------------------------------
  * Dashboard Widget */
 #wassup-dashwidget1{border-color:#ddd;}
 .wassup-dashbox{position:relative;margin:-11px;padding:0;background-color:#fafafa;}
@@ -311,7 +325,7 @@ div.main-tabs{margin:10px auto 3px;padding:3px;color:#445;background-color:#e1df
 .wassup-dashbox .no-bottom-border,#wassup-wrap .no-bottom-border{border-bottom:0 none;}
 .wassup-dashbox .no-top-border{border-top:0 none;padding-top:2px;}
 .wassup-marque{display:block;padding-right:5px;font-size:7pt;text-align:right;}
-/* ------------------------------------------------------------------
+/* ----------------------------------------------------------
  * Top Stats View */
 body.wassup-ajax{margin:0;padding:0;background-color:#fdfcf9;width:100%;}
 #topstats-popup{overflow:scroll;}
@@ -337,7 +351,7 @@ body.wassup-ajax{margin:0;padding:0;background-color:#fdfcf9;width:100%;}
 #wassup-wrap.topstats .fixed{font-size:12px;font-family:monospace;color:#667;}
 #wassup-wrap.topstats .button{width:55px;height:25px;padding:2px 0;line-height:1.4em;text-align:center;text-transform:uppercase;display:block;}
 #wassup-wrap .stats-print-btn{width:60px;margin:0;padding:5px 15px 0 0;float:right;}
-/* ------------------------------------------------------------------
+/* ----------------------------------------------------------
  * Wassup Widget control styles */
 .wassup-widget-ctrl{margin:1px -13px 5px;padding:0 !important;background-color:#ecefee;color:#201;border:0 none;}
 .wp-customizer .wassup-widget-ctrl{margin:1px -9px 5px;}
@@ -363,7 +377,7 @@ body.wassup-ajax{margin:0;padding:0;background-color:#fdfcf9;width:100%;}
 .wassup-number{font-family:"Lucida Console",Monaco,monospace;color:#667;}
 .wassup-info{padding-left:2px;display:inline;display:inline-block;vertical-align:top;}
 .wassup-help-dashicon:before {content:"\f223";display:inline;display:inline-block;-webkit-font-smoothing:antialiased;font:normal 16px/1 'dashicons';vertical-align:top;}
-/* ------------------------------------------------------------------
+/* ----------------------------------------------------------
  * Print style */
 @media print{
 body{background:none !important;color:black;font-size:9pt;}

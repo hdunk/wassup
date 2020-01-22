@@ -151,8 +151,10 @@ function wassup_optionsView($tab=0) {
 		echo "\n";?>
 		<li id="opt-tab4" class="optionstab <?php if($tab=="4")echo ' ui-tabs-active';?>"><a href="#wassup_opt_frag-4"><span><?php _e("Uninstall","wassup");?></span></a></li><?php
 	}
-	//"donate" tab @since v1.9 (separate faq submenu in v1.9.4)
+	//"donate" tab @since v1.9
+	//"faq" tab @since v1.9.5
 	echo "\n";?>
+		<li id="opt-tab-faq" class="optionstab faqtab"><a href="<?php echo wassupURI::get_admin_url('admin.php?page=wassup-options&ml=wassup-faq');?>"><span>F.A.Q.</span></a></li>
 		<li id="opt-tab-donate" class="optionstab donatetab<?php if($tab=="donate" || $tab=="5")echo ' ui-tabs-active';?>"><a href="#wassup_opt_frag-5"><span><?php _e("Donate","wassup");?></span></a></li>
 		</ul>
 

@@ -322,6 +322,7 @@ function stopExportTimer(){
 jQuery(document).ready(function($) {
 	//initialize tabs
 	var tabs=$('#tabcontainer').tabs();
+	$("li.faqtab a").unbind('click'); //faq tab is link
 	$('.submit-opt').click(function(){$(this).css("background-color","#d71");});
 	$('.default-opt').click(function(){$(this).css("background-color","#d71");});
 	$("a#BCdonate").toggle(function(){$('div#bc_placeholder').slideDown("slow");},function(){$('div#bc_placeholder').slideUp("slow");return false;});
@@ -515,7 +516,7 @@ function wassup_add_pages() {
 		add_submenu_page($wassupfolder,__("Spy Visitors","wassup"),__("SPY Visitors","wassup"),$menu_access,'wassup-spia','WassUp');
 		add_submenu_page($wassupfolder,__("Current Visitors Online","wassup"),__("Current Visitors Online","wassup"),$menu_access, 'wassup-online','WassUp');
 		//WassUp settings available at 'manage_options' access level only
-		add_submenu_page($wassupfolder,__("Options","wassup"),__("Options","wassup"),'manage_options','wassup-options','WassUp');
+		add_submenu_page($wassupfolder,__("Options","wassup"),__("Options","wassup").' & FAQ','manage_options','wassup-options','WassUp');
 	}
 	//add Wassup Stats submenu on WP2.7+ dashboard menu
 	//add "settings" to action links on "plugins" page
@@ -2055,7 +2056,7 @@ function wassup_page_contents($args=array()){
 			$html='<img src="'.$chart_url.'" alt="'.__("Graph of visitor hits","wassup").'" class="chart" width="'.$res.'" />';
 		}
 	} else {
-		$html='<p style="padding-top:10px">&nbsp;</p>';
+		$html='<p style="padding-top:5px">&nbsp;</p>';
 	} //end if wassup_chart==1
 	echo "\n";?>
 	<script type="text/javascript">jQuery('div#chart_placeholder').html(<?php echo "'".$html."'";?>).css("background-image","none");</script>

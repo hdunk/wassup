@@ -124,7 +124,7 @@ Navigate to WassUp >>Options >>[Filters & Exclusions] tab and enter a visitor's 
 Uncheck the box for "Enable statistics recording" under WassUp >>Options >>[General Setup] tab.
 
 = My popular web site is hosted on a shared server with restrictive database size limits. How do I prevent WassUp's table from growing too big for my allocated quota? =
-Navigate to Wassup >> Options >> [Manage Files & Data] tab and enable the setting for "Auto Delete" of old records and/or check the box to receive an email alert when the table size limit is exceeded.
+Navigate to Wassup >> Options >> [Manage Data] tab and enable the setting for "Auto Delete" of old records and/or check the box to receive an email alert when the table size limit is exceeded.
 
 = WassUp visitor counts are much lower than actual for my website. Why is there a discrepancy and how do I fix it? =
 Low visitor count is likely caused by page caching on your website. WassUp is incompatible with static html caching plugins such as WP Supercache, WP Cache, WP Fastest Cache, and Hyper Cache. To fix, uninstall your cache plugin or switch to a different (javascript-based) statistics plugin.
