@@ -1054,6 +1054,7 @@ function wassup_page_contents($args=array()){
 	}
 	//if unable to read timeout, use 60 sec default (-2 secs)
 	if(empty($stimeout) || !is_numeric($stimeout)) $stimeout=58;
+	$timenow=current_time("timestamp");
 	$wpurl=wassupURI::get_wphome();
 	$blogurl=wassupURI::get_sitehome();
 	$wassup_options->loadSettings();	//needed in case "update_option is run elsewhere in wassup (widget)
@@ -1067,6 +1068,10 @@ function wassup_page_contents($args=array()){
 	//get custom wassup settings for current user
 	if(empty($current_user->ID)) wp_get_current_user();
 	$wassup_user_settings=get_user_option('_wassup_settings');
+	//reset user settings if timestamp >24 hours
+	if(!empty($wassup_user_settings['utimestamp']) && ($timenow - $wassup_user_settings['utimestamp']) >86400){
+		$wassup_user_settings=$wassup_options->resetUserSettings();
+	}
 	$wnonce=(!empty($wassup_user_settings['unonce'])?$wassup_user_settings['unonce']:'');
 	//set ajax query parameters 'action_param' for "action.php"
 	$action_param=array('action'=>"wassup_action_handler",'wajax'=>1,'whash'=>$wassup_options->whash);

@@ -412,12 +412,15 @@ class wassupOptions {
 		if(empty($user)) $user=$current_user;
 		if(empty($user->ID)) $user=wp_get_current_user();
 		$wassup_user_settings=get_user_option('_wassup_settings',$user->ID);
+		$wassup_user_defaults=$this->defaultSettings('wassup_user_settings');
 		if(!empty($wassup_user_settings)){
-			$wassup_user_defaults=$this->defaultSettings('wassup_user_settings');
-			$wassup_user_settings=$wassup_user_defaults;
-			update_user_option($user->ID,'_wassup_settings',$wassup_user_settings);
+			//don't reset user nonce while Wassup panel is active, otherwise reload function won't work @since v1.9.5
+			if (is_admin() && isset($_GET['page']) && preg_match('/^(wassup)/',$_GET['page'])>0) {
+				$wassup_user_defaults['unonce']=$wassup_user_settings['unonce'];
+			}
 		}
-		return $wassup_user_settings;
+		update_user_option($user->ID,'_wassup_settings',$wassup_user_defaults);
+		return $wassup_user_defaults;
 	}
 	/**
 	 * Return an array of valid input field values or a single default value for a field in wassup settings form.
